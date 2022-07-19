@@ -1,0 +1,633 @@
+#include<conio.h>
+#include<bits/stdc++.h>
+#include<cstdio>
+using namespace std;
+class passenger
+{
+    public:
+    char name[20];
+    char gender;
+    int age;
+    int no_of_tickets;
+    int bus_no;
+    int ticket_no;
+    int seat_no[5];
+
+};
+class ticket
+{
+    public:
+    int bus_no;
+    int total_seats[60];
+    int booked_seat;
+};
+
+// FUNCTION DECLARATION
+
+void login();
+void choice();
+void book_ticket();
+void bus_details();
+void pass_details();
+void cancel_ticket();
+float charge(int,int);
+void printticket(char name[],int num_of_seats,int bus_num,float charges,int seat_no[]);
+void show_choosen_bus(int bus_num);
+void seat_allocation(int ,int ,int seatno[]);
+void ticket_record();
+void remove_seat(int tno,int no_of_ticket,int seat_no[]);
+void seat_available();
+
+
+// STARTING OF MAIN FUNCTION
+
+int main()
+{
+
+
+    login();
+    ticket_record();
+    choice();
+
+
+}
+//---------------------------------------------------------------------------------------
+// FUNCTION FOR LOGIN SCREEN
+void login()
+{
+    char username[20];
+    char password[15];
+    int i,j,ch,k;
+
+    for(k=1; k<=3; k++)
+    {
+
+        cout<<"----------------------------------------------------------------------------";
+        cout<<" \n \n\t\t\t\t\t BUS RESERVATION SYSTEM \t\t\t\t\t\n ";
+
+        cout<<"\n\n\t\t\t * LOGIN *  \t\t\n\n";
+
+        cout<<"\t\t\t ENTER THE USERNAME :";
+        cin>>username;
+        cout<<"\t\t\t ENTER THE PASSWORD :";
+        for(j=0; j<=5; j++)
+        {
+            password[j]=getch();
+            cout<<"*";
+        }
+        password[j]='\0';
+
+
+        if((strcmp(username,"abcd")==0) && (strcmp(password,"leader")==0))   // CHECKING OF USERNAME AND PASSWORD
+        {
+            cout<<"\n\n\n\t\t\t  Welcome to our project && Your login is successful \n";
+            cout<<"\n\n\t\t\t\t  Press any key to continue.......";
+            getch();
+            break;
+        }
+        else
+        {
+            if(k==3)
+            {
+
+                cout<<"\n \n \n \t ----  YOU HAVE EXCEEDED THE LOGIN LIMIT  ----\n \n  \n ";
+                exit(0);
+            }
+            cout<<"\n INCORRECT  USERNAME  OR  PASSWORD \n";
+            cout<<"\n PRESS ANY KEY TO RE-LOGIN \n";
+
+        }
+    }
+}
+//-----------------------------------------------------------------------------------------------------------
+//FUNCTION FOR MAIN MENU
+void choice(){
+    system("cls");
+    int ch;
+
+    while(1)
+    {
+        system("cls");
+        cout<<"----------------------------------------------------------------------------";
+        cout<<" \n \n\t\t\t\t\t BUS RESERVATION SYSTEM \t\t\t\t\t\n ";
+
+        cout<<"\nSELECT YOUR OPTION :";
+        cout<<"\n\n1.VIEW ALL AVAILABLE busS\n2.BOOK TICKET\n3.VIEW PASSENGER DETAILS\n4.VIEW ALL SEATS AVAILABLE \n5.CANCEL TICKET\n6.QUIT";
+        cout<<"\n\n Enter your choice :";
+        cin>>ch;
+        if(ch==6)
+        {
+            exit(0);
+        }
+        else
+        {
+            switch(ch)
+            {
+            case 1:
+            {
+                bus_details();
+                break;
+            }
+            case 2:
+            {
+                book_ticket();
+                break;
+            }
+            case 3:
+            {
+                pass_details();
+                break;
+            }
+            case 4:
+            {
+                seat_available();
+                break;
+            }
+            case 5:
+            {
+                cancel_ticket();
+                break;
+            }
+            default:
+            {
+                cout<<"wrong choice ! try again";
+                break;
+            }
+            }
+
+        }
+    }
+}
+//-----------------------------------------------------------------------------------------------------------
+//FUNCTION FOR BOOKING
+void book_ticket()
+{
+
+    system("cls");
+    fstream fp;
+    char confirm;
+    float charges;
+     passenger e;
+    int s,seatno[5];
+    long int recsize;
+    fp.open("passenger_details.DAT",ios::out|ios::app|ios::binary);
+   
+    recsize=sizeof(e);
+
+
+
+    fp.seekg( 0, ios::beg);
+
+    cout<<"\n  Enter details of passenger \n \n   Name :   ";
+    cin.ignore();
+    cin.getline(e.name,50);
+    cout<<"\n Geder (M /F) :   ";
+    cin>>e.gender;
+    cout<<"\n Age :  ";
+    cin>>e.age;
+    cout<<"\n Number of tickets:  ";
+    cin>>e.no_of_tickets ;
+   cin.ignore();
+    bus_details();
+
+    cout<<"\n \n Enter bus no: ";
+s1:
+    cin>>e.bus_no;
+
+    if(e.bus_no>=1001 && e.bus_no <=1005)
+    {
+        cout<<"\n\nConfirm Ticket (Y/N):>";
+s2:
+        cin>>confirm;
+        if(confirm == 'y')
+        {
+
+            charges=charge(e.bus_no,e.no_of_tickets);
+            seat_allocation(e.no_of_tickets,e.bus_no,e.seat_no);
+          
+            printticket(e.name,e.no_of_tickets,e.bus_no,charges,e.seat_no);
+            fp.write((char*)&e,recsize);
+            cout<<"\n==================";
+            cout<<"\n Reservation Done\n";
+            cout<<"==================";
+            cout<<"\nPress any key to go back to Main menu";
+        }
+        else
+        {
+            if(confirm=='n')
+            {
+                cout<<"\nReservation Not Done!\nPress any key to go back to  Main menu!";
+            }
+            else
+            {
+                cout<<"\nInvalid choice entered! Enter again-----> ";
+                goto s2;
+            }
+        }
+
+    }
+    else
+    {
+        cout<<"\nInvalid bus Number! Enter again--> ";
+        goto s1;
+    }
+
+
+s3:
+
+    fp.close();
+
+    getch();
+
+}
+//-----------------------------------------------------------------------------------------------------------
+//FUNCTION TO SHOW DETAILS OF PASSENGERS
+void pass_details()
+{
+    int i;
+    fstream ft;
+    long int recsize;
+    float charges;
+     passenger e;
+    system("cls");
+    recsize =sizeof(e);
+    ft.open("passenger_details.DAT",ios::in |ios::app|ios::binary);
+    if(ft.fail())
+    {
+        cout<<"\nNo passenger Details ";
+    }
+    else
+    {
+        cout<<"\n\n pname\t\tage\t\tno of seats\t\tbus no\t\tcharges\t\tseat no ";
+        cout<<"\n-------------------------------------------------------------------------------------------------------------------------\n\n";
+        while(ft.read((char*)&e,recsize))
+        {
+            charges=charge(e.bus_no,e.no_of_tickets);
+            cout<<"\n"<<e.name<<"\t"<<e.age<<"\t"<<e.no_of_tickets<<"\t"<<e.bus_no<<"\t"<<charges;
+            for (i=0; i<e.no_of_tickets; i++)
+            {
+                if(e.seat_no[i]>0)
+                    cout<< " "<<e.seat_no[i]<<" ";
+            }
+        }
+    }
+    ft.close();
+    getch();
+}
+//-----------------------------------------------------------------------------------------------------------
+//FUNCTION TO SHOW ALL AVAILABLE bus
+void bus_details()
+{
+    system("cls");
+    cout<<"------------------------------------------------------------------------------------------------";
+    cout<<"\nBus.No\tName\t\t\tfrom\t\t\t to\t\t\tCharges\n";
+    cout<<"------------------------------------------------------------------------------------------------";
+    cout<<"\n1001\tPiyar  Express\t\tPatna(6.00AM)    \tNewDelhi(4.00PM) \tRs.5000 ";
+    cout<<"\n1002\tAditya Travels\t\tAhmedabad(2.30PM)\tMumbai(9.35PM)   \tRs.4000";
+    cout<<"\n1003\tKartar Express\t\tNew Delhi(8.10AM)\tJhansi(12.35PM)  \tRs.3000";
+    cout<<"\n1004\tSugama Travels\t\tIndore(4.00PM)   \tKhajuraho(6.00AM)\tRs.2000";
+    cout<<"\n1005\tKSRTC         \t\tManglore(9.15PM) \tBangalore(1.40PM)\tRs.1000";
+
+    getch();
+}
+//-------------------------------------------------------------------------------------------
+//FUNCTION FOR CALCULATING CHARGES
+float charge(int bus_num,int num_of_seats)
+{
+
+    if (bus_num==1001)
+    {
+        return(5000.0*num_of_seats);
+    }
+    if (bus_num==1002)
+    {
+        return(4000.0*num_of_seats);
+    }
+    if (bus_num==1003)
+    {
+        return(3000.0*num_of_seats);
+    }
+    if (bus_num==1004)
+    {
+        return(2000.0*num_of_seats);
+    }
+    if (bus_num==1005)
+    {
+        return(1000.0*num_of_seats);
+    }
+
+}
+//-------------------------------------------------------------------------------------------
+//FUNCTION TO CANCEL TICKETS
+void cancel_ticket()
+{
+    system("cls");
+     passenger e;
+    fstream fp,ft;
+    float charges;
+    long int recsize;
+    char name[20];
+    int age,day;
+    float returnf;
+    int choice;
+    cout<<"Enter name of passenger : ";
+    cin>>name;
+    cout<<"Enter age of passenger : ";
+    cin>>age;
+    cout<<"Enter the days before cancellation :";
+    cin>>day;
+    fp.open("passenger_details.DAT",ios::in |ios::out|ios::app|ios::binary);
+    recsize=sizeof(e);
+    ft.open("temp.DAT",ios::in |ios::out|ios::app|ios::binary);
+    cout<<"\nEnter 1--> Confirm cancellation \nEnter 2 --> Quit\n";
+    cin>>choice;
+    if(choice==1)
+    {
+
+        while(fp.read((char*)&e,recsize))
+        {
+
+            if(strcmp(e.name,name)!=0)
+            {
+                ft.write((char*)&e,recsize);
+            }
+            else if(e.age!=age)
+            {
+                ft.write((char*)&e,recsize);
+            }
+            else
+            {
+
+                float fare=charge(e.bus_no,e.no_of_tickets);
+
+
+
+                if (day>20)
+                {
+                    returnf = fare;                    // NO MONEY DEDUCED FOR DAYS > 20
+                }
+                else if((day<=20) && (day>=7))
+                {
+                    returnf =fare - (fare *0.3);     // 30% MONEY DEDUCED
+                }
+                else if((day<7) && (day>=3))
+                {
+                    returnf = fare - (fare*0.5);    // 50% MONEY DEDUCED
+                }
+                else
+                {
+                    returnf = fare- fare ;      //NO MONEY RETURN
+                }
+
+                cout<<"Return fares = \n"<<returnf;
+                cout<<"\n Your ticket cancelled successfully......\n";
+                remove_seat(e.bus_no,e.no_of_tickets,e.seat_no);
+            }
+        }
+        fp.close();
+        ft.close();
+        remove("passenger_details.DAT");
+        rename("temp.DAT","passenger_details.DAT");
+    }
+
+    else if (choice==2)
+    {
+        cout<<"\tYour ticket not cancelled   \n";
+    }
+    else
+    {
+        cout<<"\n Invalid data\n";
+    }
+    cout<<"\n\n\n\t press any key to continue..........";
+    getch();
+
+}
+//FUNCTION TO REMOVE SEAT AFTER CANCELLATION
+void remove_seat(int tno,int no_of_ticket,int seat_no[])
+{
+    int i,j=0,k;
+     ticket t;
+    fstream fp;
+    long int recsize=sizeof(t);
+    fp.open("ticket.DAT",ios::ate | ios::in |ios::out|ios::binary);
+    fp.seekg(0,ios::beg);
+    while(fp.read((char*)&t,recsize))
+    {
+        if(t.bus_no==tno)
+            break;
+            j++;
+    }
+
+    for (i = 0; i < no_of_ticket; i++)
+    {
+        if(seat_no[i]>=0)
+        {
+        t.total_seats[seat_no[i]-1]=0;
+        t.booked_seat-=1;
+        }
+    }
+   
+   fp.seekp(j*recsize,ios::beg);
+    fp.write((char*)&t,recsize);
+    fp.close();
+
+
+    getch();
+}
+//--------------------------------------------------------------------------------------------------
+//FUNCTION TO PRINT ALL THE SPECIFICATIONS OF PASSENGER DURING BOOKING
+void printticket(char name[],int num_of_seats,int bus_num,float charges,int seat_no[])
+{
+    int i;
+    system("cls");
+    cout<<"-------------------\n";
+    cout<<"\tTICKET\n";
+    cout<<"-------------------\n\n";
+    cout<<"Name:\t\t\t"<<name;
+    cout<<"\nNumber Of Seats:\t"<<num_of_seats;
+    cout<<"\nbus Number:\t\t"<<bus_num;
+    show_choosen_bus(bus_num);
+    cout<<"Your seat numbers : \n";
+
+    cout<<"\nCharges:\t\t"<<charges;
+}
+//------------------------------------------------------------------------------
+//FUNCTION TO CHOOSE bus DURING BOOKING
+void show_choosen_bus(int bus_num)
+{
+
+    if (bus_num==1001)
+    {
+        cout<<"\nbus:\t\t\tPiyar Express";
+        cout<<"\nDestination:\t\tPatna  to NewDelhi";
+        cout<<"\nDeparture:\t\t 5.00 am ";
+        cout<<"\nArrival: \t \t 4.00 pm\n";
+    }
+    if (bus_num==1002)
+    {
+        cout<<"\nbus:\t\t\tAditya Travels";
+        cout<<"\nDestination:\t\tAhmedabad to Mumbai";
+        cout<<"\nDeparture:\t\t 2.30 Pm ";
+        cout<<"\nArrival: \t \t 9.00 pm\n";
+    }
+    if (bus_num==1003)
+    {
+        cout<<"\nbus:\t\t\tKartar Express";
+        cout<<"\nDestination:\t\tHazrat Nizamuddin  to jhansi";
+        cout<<"\nDeparture:\t\t 8.00 am ";
+        cout<<"\nArrival: \t \t 12.35 pm\n";
+    }
+    if (bus_num==1004)
+    {
+        cout<<"\nbus:\t\t\tSugama Travels";
+        cout<<"\nDestination:\t\tIndore  to khajuraho";
+        cout<<"\nDeparture:\t\t 4.00 Pm ";
+        cout<<"\nArrival: \t \t 6.00 Am\n";
+    }
+    if (bus_num==1005)
+    {
+        cout<<"\nbus:\t\t\t KSRTC ";
+        cout<<"\nDestination:\t\tManglore  to Bangalore";
+        cout<<"\nDeparture:\t\t 9.50 Pm ";
+        cout<<"\nArrival: \t \t 1.40 pm\n";
+    }
+
+}
+//-------------------------------------------------------------------------------------------------------------------------
+//FUNCTION TO SHOW ALL SEATS AVAILABLE FOR PARTICULAR bus
+void seat_available()
+{
+    int tno;
+
+     ticket t;
+    fstream fp;
+    long int recsize=sizeof(t);
+    cout<<"Enter bus number: ";
+    cin>>tno;
+    if(tno>=1001 && tno <=1005)
+    {
+
+
+        fp.open("ticket.DAT",ios::ate | ios::in |ios::out|ios::binary);
+        fp.seekg(0,ios::beg);
+        
+        while(fp.read((char*)&t,recsize))
+        {
+            if(t.bus_no==tno)
+                break;
+        }
+        if(t.booked_seat<=60)
+        {
+            cout<<"\nNo of seats available = \n"<<60-t.booked_seat;
+        }
+         cout<<"\t           -:SEAT MATRIX:-        \n";
+
+    for (int i = 0; i < 60; i++)
+    {
+        if (t.total_seats[i] == 0)
+        {
+            cout<<"\t"<< i + 1;
+        }
+        else
+            cout<<"\t";
+        if ((i + 1) % 4 == 0)
+            cout<<"\n";
+    }
+
+        cout<<"\n";
+
+        fp.close();
+    }
+    else
+    {
+        cout<<"\nInvalid bus Number! Enter again--> ";
+    }
+    getch();
+}
+//-------------------------------------------------------------------------------------------------------------------------
+//FUNCTION TO STORE RECORD OF ALL busS IN FILE
+void ticket_record()
+{
+    fstream fp;
+    long int recsize ;
+    ticket t[5],tt;
+    int i,j;
+    recsize=sizeof(t[0]);
+    fp.open("ticket.DAT",ios::in| ios::binary);
+    if(fp.fail())
+    { 
+        fp.open("ticket.DAT", ios::out|ios::binary);
+       
+        for(i=0; i<5; i++)
+        {
+            t[i].bus_no=1001 +i;
+        
+            for(j=0; j<60; j++)
+            {
+                t[i].total_seats[j]=0;
+            }
+            t[i].booked_seat=0;
+            fp.write((char*)&t[i],recsize);
+           
+        }
+         
+    }
+    fp.close();
+   
+}
+//----------------------------------------------------------------------------------------
+//FUNCTION FOR ALLOTING THE SEATS DURING BOOKING
+void seat_allocation(int p, int tno, int seatno[])
+{
+
+    int i, j=0, k; 
+     ticket t;
+    fstream fp;
+    long int recsize = sizeof(t);
+    fp.open("ticket.DAT", ios::ate | ios::in |ios::out|ios::binary);
+    fp.seekg(0,ios::beg);
+    while (fp.read((char*)&t, recsize))
+    {
+    
+        if (t.bus_no == tno)
+            break;
+            j++;
+    }
+    cout<<" \n  No of seats avaible = "<< 60 - t.booked_seat;
+    cout<<"\t           -:SEAT MATRIX:-        \n";
+
+    for (i = 0; i < 60; i++)
+    {
+        if (t.total_seats[i] == 0)
+        {
+            cout<<"\t"<<i + 1;
+        }
+        else
+            cout<<"\t";
+        if ((i + 1) % 4 == 0)
+            cout<<"\n";
+    }
+
+    cout<<"\tEnter Seat Numbers: \n";
+
+    for (i = 0; i < p; i++)
+    {
+        cin>>k;
+        t.total_seats[k - 1] = k;
+        seatno[i] = k;
+        t.booked_seat += 1;
+    }
+    
+
+   fp.seekp(j*recsize,ios::beg);
+    fp.write((char*)&t,recsize);
+    fp.close();
+    
+
+    getch();
+}
+
+
+
+
+//================================ END OF CODE ==============================
